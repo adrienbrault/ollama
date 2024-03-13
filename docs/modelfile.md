@@ -85,7 +85,7 @@ There are two ways to view `Modelfile`s underlying the models in [ollama.com/lib
   # To build a new Modelfile based on this one, replace the FROM line with:
   # FROM llama2:13b
 
-  FROM /root/.ollama/models/blobs/sha256:123abc
+  FROM /root/.ollama/models/blobs/sha256-123abc
   TEMPLATE """[INST] {{ if .System }}<<SYS>>{{ .System }}<</SYS>>
 
   {{ end }}{{ .Prompt }} [/INST] """

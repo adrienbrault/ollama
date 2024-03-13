@@ -215,7 +215,7 @@ func createBlob(cmd *cobra.Command, client *api.Client, path string) (string, er
 	}
 	bin.Seek(0, io.SeekStart)
 
-	digest := fmt.Sprintf("sha256:%x", hash.Sum(nil))
+	digest := fmt.Sprintf("sha256-%x", hash.Sum(nil))
 	if err = client.CreateBlob(cmd.Context(), digest, bin); err != nil {
 		return "", err
 	}

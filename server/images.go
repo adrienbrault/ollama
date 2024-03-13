@@ -795,10 +795,8 @@ func PruneLayers() error {
 
 	for _, blob := range blobs {
 		name := blob.Name()
-		if runtime.GOOS == "windows" {
-			name = strings.ReplaceAll(name, "-", ":")
-		}
-		if strings.HasPrefix(name, "sha256:") {
+		name = strings.ReplaceAll(name, "-", ":")
+		if strings.HasPrefix(name, "sha256-") {
 			deleteMap[name] = struct{}{}
 		}
 	}
@@ -1123,7 +1121,7 @@ func GetSHA256Digest(r io.Reader) (string, int64) {
 		log.Fatal(err)
 	}
 
-	return fmt.Sprintf("sha256:%x", h.Sum(nil)), n
+	return fmt.Sprintf("sha256-%x", h.Sum(nil)), n
 }
 
 var errUnauthorized = fmt.Errorf("unauthorized")

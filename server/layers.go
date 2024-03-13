@@ -67,7 +67,7 @@ func NewLayer(r io.Reader, mediatype string) (*Layer, error) {
 
 	return &Layer{
 		MediaType:    mediatype,
-		Digest:       fmt.Sprintf("sha256:%x", sha256sum.Sum(nil)),
+		Digest:       fmt.Sprintf("sha256-%x", sha256sum.Sum(nil)),
 		Size:         n,
 		tempFileName: temp.Name(),
 	}, nil

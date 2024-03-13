@@ -1060,6 +1060,19 @@ func Serve(ln net.Listener) error {
 
 	slog.SetDefault(slog.New(handler))
 
+	// We rename old blobs replacing (":") with ("-") to avoid issues with
+	// NTFS and other filesystems that do not support colons in
+	// filenames.
+	//
+	// This must be done before the server starts to avoid issues with
+	// concurrent access to the blobs directory. We also do this BEFORE
+	// pruning so it can look only for files with the new naming scheme.
+	if err := fixOldBlobNames(); err != nil {
+		// TODO(bmizerany): decide if we should fail here or just log
+		// the error and continue.
+		return err
+	}
+
 	if noprune := os.Getenv("OLLAMA_NOPRUNE"); noprune == "" {
 		// clean up unused layers and manifests
 		if err := PruneLayers(); err != nil {
