@@ -885,8 +885,8 @@ func CreateBlobHandler(c *gin.Context) {
 		return
 	}
 
-	if layer.Digest() != c.Param("digest") {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("digest mismatch, expected %q, got %q", c.Param("digest"), layer.Digest())})
+	if layer.Digest != c.Param("digest") {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("digest mismatch, expected %q, got %q", c.Param("digest"), layer.Digest)})
 		return
 	}
 

@@ -34,29 +34,12 @@ func (ls *Layers) Replace(layer *Layer) {
 type Layer struct {
 	MediaType string `json:"mediaType"`
 
-	// DEPRECATED: Use Digest() instead.
-	//
-	// OldDigest should always be considered the old digest of the
-	// layer. It is possible it is the same as the new digest, however
-	// it is not safe to assume that. Use Digest() instead.
-	//
-	// This field is only used for backwards compatibility with
-	// unmarshaling JSON.
-	OldDigest string `json:"digest"`
+	Digest string `json:"digest"`
 
 	Size int64  `json:"size"`
 	From string `json:"from,omitempty"`
 
 	tempFileName string
-}
-
-func (l *Layer) Digest() string {
-	typ, after, _ := strings.Cut(l.OldDigest, ":")
-	if typ == "" {
-		// old is new
-		return l.Digest()
-	}
-	return fmt.Sprintf("%s-%s", typ, after)
 }
 
 func NewLayer(r io.Reader, mediatype string) (*Layer, error) {
@@ -82,7 +65,7 @@ func NewLayer(r io.Reader, mediatype string) (*Layer, error) {
 
 	return &Layer{
 		MediaType:    mediatype,
-		OldDigest:    fmt.Sprintf("sha256-%x", sha256sum.Sum(nil)),
+		Digest:       fmt.Sprintf("sha256-%x", sha256sum.Sum(nil)),
 		Size:         n,
 		tempFileName: temp.Name(),
 	}, nil
@@ -101,7 +84,7 @@ func NewLayerFromLayer(digest, mediatype, from string) (*Layer, error) {
 
 	return &Layer{
 		MediaType: mediatype,
-		OldDigest: digest,
+		Digest:    digest,
 		Size:      fi.Size(),
 		From:      from,
 	}, nil
@@ -111,7 +94,7 @@ func (l *Layer) Commit() (bool, error) {
 	// always remove temp
 	defer os.Remove(l.tempFileName)
 
-	blob, err := GetBlobsPath(l.Digest())
+	blob, err := GetBlobsPath(l.Digest)
 	if err != nil {
 		return false, err
 	}
