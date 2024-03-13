@@ -64,7 +64,6 @@ jobs:
     runs-on: windows
     env:
       KEY_CONTAINER: ${{ vars.KEY_CONTAINER }}
-      SIGN_TOOL: "C:\\Program Files (x86)\\Microsoft SDKs\\ClickOnce\\SignTool\\signtool.exe"
     steps:
       - uses: actions/checkout@v4
       - uses: 'google-github-actions/auth@v2'
@@ -72,6 +71,14 @@ jobs:
           project_id: 'ollama'
           credentials_json: '${{ secrets.GOOGLE_SIGNING_CREDENTIALS }}'
       - run: echo "${{ vars.OLLAMA_CERT }}" > ollama_inc.crt
+      - name: install Windows SDK 8.1 to get signtool
+        run: |
+          $ErrorActionPreference = "Stop"
+          write-host "downloading SDK"
+          Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=323507" -OutFile "${env:RUNNER_TEMP}\sdksetup.exe"
+          Start-Process "${env:RUNNER_TEMP}\sdksetup.exe" -ArgumentList @("/q") -NoNewWindow -Wait
+          write-host "Win SDK 8.1 installed"
+          gci -path 'C:\Program Files (x86)\Windows Kits\' -r -fi 'signtool.exe'
       - name: install signing plugin
         run: |
           $ErrorActionPreference = "Stop"
@@ -81,6 +88,8 @@ jobs:
           write-host "Installing plugin"
           & "${env:RUNNER_TEMP}\plugin\*\kmscng.msi" /quiet
           write-host "plugin installed"
+      - run: |
+          ls env:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.22'

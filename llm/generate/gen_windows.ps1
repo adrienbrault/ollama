@@ -143,7 +143,7 @@ function sign {
     if ("${env:KEY_CONTAINER}") {
         write-host "Signing ${script:buildDir}/lib/*.dll"
         foreach ($file in (get-childitem "${script:buildDir}/lib/*.dll")){
-            & "${script:SignTool}" sign /v /fd sha256 /t http://timestamp.digicert.com /f "${script:OLLAMA_CERT}" `
+            & "${script:SignTool}" sign /v /debug /fd sha256 /t http://timestamp.digicert.com /f "${script:OLLAMA_CERT}" `
                 /csp "Google Cloud KMS Provider" /kc "${env:KEY_CONTAINER}" $file
             if ($LASTEXITCODE -ne 0) { exit($LASTEXITCODE)}
         }
