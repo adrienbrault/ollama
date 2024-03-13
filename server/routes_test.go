@@ -106,7 +106,9 @@ func Test_Routes(t *testing.T) {
 				err = json.Unmarshal(body, &modelList)
 				assert.Nil(t, err)
 
-				assert.Equal(t, 1, len(modelList.Models))
+				if len(modelList.Models) != 1 {
+					t.Fatalf("len(models) = %d; want 1", len(modelList.Models))
+				}
 				assert.Equal(t, modelList.Models[0].Name, "test-model:latest")
 			},
 		},

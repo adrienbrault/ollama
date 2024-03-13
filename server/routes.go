@@ -809,7 +809,6 @@ func ListModelsHandler(c *gin.Context) {
 			model := strings.Trim(strings.TrimPrefix(path, manifestsPath), string(os.PathSeparator))
 			modelPath := strings.Join([]string{model, tag}, ":")
 			canonicalModelPath := strings.ReplaceAll(modelPath, string(os.PathSeparator), "/")
-
 			resp, err := modelResponse(canonicalModelPath)
 			if err != nil {
 				slog.Info(fmt.Sprintf("skipping file: %s", canonicalModelPath))
@@ -886,8 +885,8 @@ func CreateBlobHandler(c *gin.Context) {
 		return
 	}
 
-	if layer.Digest != c.Param("digest") {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("digest mismatch, expected %q, got %q", c.Param("digest"), layer.Digest)})
+	if layer.Digest() != c.Param("digest") {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("digest mismatch, expected %q, got %q", c.Param("digest"), layer.Digest())})
 		return
 	}
 

@@ -171,7 +171,7 @@ func GetModel(name string) (*Model, error) {
 		Size:      manifest.GetTotalSize(),
 	}
 
-	filename, err := GetBlobsPath(manifest.Config.Digest)
+	filename, err := GetBlobsPath(manifest.Config.Digest())
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +187,7 @@ func GetModel(name string) (*Model, error) {
 	}
 
 	for _, layer := range manifest.Layers {
-		filename, err := GetBlobsPath(layer.Digest)
+		filename, err := GetBlobsPath(layer.Digest())
 		if err != nil {
 			return nil, err
 		}
@@ -287,7 +287,7 @@ func CreateModel(ctx context.Context, name, modelFileDir string, commands []pars
 	deleteMap := make(map[string]struct{})
 	if manifest, _, err := GetManifest(ParseModelPath(name)); err == nil {
 		for _, layer := range append(manifest.Layers, manifest.Config) {
-			deleteMap[layer.Digest] = struct{}{}
+			deleteMap[layer.Digest()] = struct{}{}
 		}
 	}
 
@@ -360,7 +360,7 @@ func CreateModel(ctx context.Context, name, modelFileDir string, commands []pars
 				}
 
 				fn(api.ProgressResponse{Status: "reading model metadata"})
-				fromConfigPath, err := GetBlobsPath(manifest.Config.Digest)
+				fromConfigPath, err := GetBlobsPath(manifest.Config.Digest())
 				if err != nil {
 					return err
 				}
@@ -387,9 +387,9 @@ func CreateModel(ctx context.Context, name, modelFileDir string, commands []pars
 				config.SetFileType(fromConfig.FileType)
 
 				for _, layer := range manifest.Layers {
-					deleteMap[layer.Digest] = struct{}{}
+					deleteMap[layer.Digest()] = struct{}{}
 					if layer.MediaType == "application/vnd.ollama.image.params" {
-						fromParamsPath, err := GetBlobsPath(layer.Digest)
+						fromParamsPath, err := GetBlobsPath(layer.Digest())
 						if err != nil {
 							return err
 						}
@@ -405,7 +405,7 @@ func CreateModel(ctx context.Context, name, modelFileDir string, commands []pars
 						}
 					}
 
-					layer, err := NewLayerFromLayer(layer.Digest, layer.MediaType, modelpath.GetShortTagname())
+					layer, err := NewLayerFromLayer(layer.Digest(), layer.MediaType, modelpath.GetShortTagname())
 					if err != nil {
 						return err
 					}
@@ -413,7 +413,7 @@ func CreateModel(ctx context.Context, name, modelFileDir string, commands []pars
 					layers.Add(layer)
 				}
 
-				deleteMap[manifest.Config.Digest] = struct{}{}
+				deleteMap[manifest.Config.Digest()] = struct{}{}
 				continue
 			}
 			defer bin.Close()
@@ -573,7 +573,7 @@ func CreateModel(ctx context.Context, name, modelFileDir string, commands []pars
 
 	digests := make([]string, len(layers.items))
 	for i, layer := range layers.items {
-		digests[i] = layer.Digest
+		digests[i] = layer.Digest()
 	}
 
 	config.RootFS.DiffIDs = digests
@@ -588,7 +588,7 @@ func CreateModel(ctx context.Context, name, modelFileDir string, commands []pars
 		return err
 	}
 
-	delete(deleteMap, configLayer.Digest)
+	delete(deleteMap, configLayer.Digest())
 
 	for _, layer := range append(layers.items, configLayer) {
 		committed, err := layer.Commit()
@@ -601,9 +601,9 @@ func CreateModel(ctx context.Context, name, modelFileDir string, commands []pars
 			status = "using already created layer"
 		}
 
-		fn(api.ProgressResponse{Status: fmt.Sprintf("%s %s", status, layer.Digest)})
+		fn(api.ProgressResponse{Status: fmt.Sprintf("%s %s", status, layer.Digest())})
 
-		delete(deleteMap, layer.Digest)
+		delete(deleteMap, layer.Digest())
 	}
 
 	fn(api.ProgressResponse{Status: "writing manifest"})
@@ -749,10 +749,10 @@ func deleteUnusedLayers(skipModelPath *ModelPath, deleteMap map[string]struct{},
 		}
 
 		for _, layer := range manifest.Layers {
-			delete(deleteMap, layer.Digest)
+			delete(deleteMap, layer.Digest())
 		}
 
-		delete(deleteMap, manifest.Config.Digest)
+		delete(deleteMap, manifest.Config.Digest())
 		return nil
 	}
 
@@ -855,9 +855,9 @@ func DeleteModel(name string) error {
 
 	deleteMap := make(map[string]struct{})
 	for _, layer := range manifest.Layers {
-		deleteMap[layer.Digest] = struct{}{}
+		deleteMap[layer.Digest()] = struct{}{}
 	}
-	deleteMap[manifest.Config.Digest] = struct{}{}
+	deleteMap[manifest.Config.Digest()] = struct{}{}
 
 	err = deleteUnusedLayers(&mp, deleteMap, false)
 	if err != nil {
@@ -1006,9 +1006,9 @@ func PullModel(ctx context.Context, name string, regOpts *registryOptions, fn fu
 
 		if manifest != nil {
 			for _, l := range manifest.Layers {
-				deleteMap[l.Digest] = struct{}{}
+				deleteMap[l.Digest()] = struct{}{}
 			}
-			deleteMap[manifest.Config.Digest] = struct{}{}
+			deleteMap[manifest.Config.Digest()] = struct{}{}
 		}
 	}
 
@@ -1032,22 +1032,22 @@ func PullModel(ctx context.Context, name string, regOpts *registryOptions, fn fu
 			ctx,
 			downloadOpts{
 				mp:      mp,
-				digest:  layer.Digest,
+				digest:  layer.Digest(),
 				regOpts: regOpts,
 				fn:      fn,
 			}); err != nil {
 			return err
 		}
-		delete(deleteMap, layer.Digest)
+		delete(deleteMap, layer.Digest())
 	}
-	delete(deleteMap, manifest.Config.Digest)
+	delete(deleteMap, manifest.Config.Digest())
 
 	fn(api.ProgressResponse{Status: "verifying sha256 digest"})
 	for _, layer := range layers {
-		if err := verifyBlob(layer.Digest); err != nil {
+		if err := verifyBlob(layer.Digest()); err != nil {
 			if errors.Is(err, errDigestMismatch) {
 				// something went wrong, delete the blob
-				fp, err := GetBlobsPath(layer.Digest)
+				fp, err := GetBlobsPath(layer.Digest())
 				if err != nil {
 					return err
 				}
