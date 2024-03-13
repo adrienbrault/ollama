@@ -34,9 +34,19 @@ func (ls *Layers) Replace(layer *Layer) {
 
 type Layer struct {
 	MediaType string `json:"mediaType"`
+
+	// DEPRECATED: Use Digest() instead.
+	//
+	// OldDigest should always be considered the old digest of the
+	// layer. It is possible it is the same as the new digest, however
+	// it is not safe to assume that. Use Digest() instead.
+	//
+	// This field is only used for backwards compatibility with
+	// unmarshaling JSON.
 	OldDigest string `json:"digest"`
-	Size      int64  `json:"size"`
-	From      string `json:"from,omitempty"`
+
+	Size int64  `json:"size"`
+	From string `json:"from,omitempty"`
 
 	tempFileName string
 }
